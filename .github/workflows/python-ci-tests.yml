@@ -16,6 +16,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Execute linter
+    - name: Execute app linter
       run: |
         docker run --rm -v $(pwd):/apps alpine/flake8:3.5.0 --max-line-length=120 *.py
+    - name: Execute Dockerfile linter
+      run: |
+        docker run --rm -i hadolint/hadolint < Dockerfile
+    - name: Execute backend tests
+      run: |
+        docker build --no-cache -t backend-test -f Dockerfile.test .
+        docker run --name backend-test backend-test
+        docker cp backend-test:/app/test_results.xml ./test_results.xml
+        docker rm backend-test

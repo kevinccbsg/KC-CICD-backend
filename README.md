@@ -11,7 +11,7 @@ Para ejecutar la api rest necesitamos un MySQL como base de datos (require expor
 
 Podemos ejecutar dos linters, uno para el código python (flake8) y otro para el Dockerfile (hadolint):
 
- * flake8: `docker run -ti --rm -v $(pwd):/apps alpine/flake8:3.5.0 --max-line-length=120 *.py`
+ * flake8: `docker run --rm -v $(pwd):/apps alpine/flake8:3.5.0 --max-line-length=120 *.py`
  * hadolint: `docker run --rm -i hadolint/hadolint < Dockerfile`
 
 ## Tests
