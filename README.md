@@ -1,4 +1,5 @@
 # Codigo para backend
+![Python CI tests](https://github.com/kevinccbsg/KC-CICD-backend/workflows/Python%20CI%20tests/badge.svg?branch=master)
 
 Tenemos una api rest escrita en [Flask](https://flask.palletsprojects.com/en/1.1.x/) que tiene dos posibles entradas:
 
