@@ -1,5 +1,4 @@
 import os
-import hashlib
 from flask import Flask, jsonify, request
 from flask_cors import cross_origin
 from flaskext.mysql import MySQL
@@ -20,7 +19,7 @@ mysql = MySQL(app)
 
 
 @app.route('/register', methods=['POST'])
-@cross_origin(headers=['Content-Type']) 
+@cross_origin(headers=['Content-Type'])
 def register():
     content = request.get_json()
     email = content['email']
@@ -32,7 +31,7 @@ def register():
         cur.execute(f'INSERT INTO orders (email, name) VALUES ("{email}","{name}")')
         conn.commit()
         msg = 'Registered successfully'
-    except:
+    except ValueError:
         error = True
         msg = f'Error occured: please try again later.'
     conn.close()
