@@ -21,7 +21,7 @@ jobs:
         docker run --rm -v $(pwd):/apps alpine/flake8:3.5.0 --max-line-length=120 *.py
     - name: Execute Dockerfile linter
       run: |
-        docker run --rm -i hadolint/hadolint < Dockerfile
+        docker run --rm hadolint/hadolint < Dockerfile
     - name: Execute backend tests
       run: |
         docker build --no-cache -t backend-test -f Dockerfile.test .
