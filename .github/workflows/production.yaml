@@ -1,0 +1,68 @@
+name: Publish production
+
+on:
+  release:
+    types: [published]
+
+# Environment variables available to all jobs and steps in this workflow
+env:
+  GKE_PROJECT: ${{ secrets.GKE_PROJECT }}
+  GKE_EMAIL: ${{ secrets.GKE_EMAIL }}
+  GITHUB_SHA: ${{ github.sha }}
+  GKE_ZONE: europe-west1-c
+  IMAGE: kc-ci-backend
+  REGISTRY_HOSTNAME: eu.gcr.io
+  DEPLOYMENT_NAME: kc-cicd-backend
+  GKE_CLUSTER: kc-cluster
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    name: Build Publish image, and Deploy
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: '270.0.0'
+        service_account_email: ${{ secrets.GKE_EMAIL }}
+        service_account_key: ${{ secrets.GKE_KEY }}
+
+    # Configure docker to use the gcloud command-line tool as a credential helper
+    - run: |
+        # Set up docker to authenticate
+        # via gcloud command-line tool.
+        gcloud auth configure-docker
+
+    - name: Build
+      run: |
+        docker build -t "$REGISTRY_HOSTNAME"/"$GKE_PROJECT"/"$IMAGE":"$GITHUB_SHA" \
+          --build-arg GITHUB_SHA="$GITHUB_SHA" .
+
+    # Push the Docker image to Google Container Registry
+    - name: Publish
+      run: |
+        docker push $REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
+
+    # Set up kustomize
+    - name: Set up Kustomize
+      run: |
+        curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+        chmod u+x ./kustomize
+        ./kustomize version
+
+    # Deploy the Docker image to the GKE cluster
+    - name: Deploy
+      run: |
+        gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GKE_PROJECT
+        cd .helm && ../kustomize edit set image $REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE:${GITHUB_SHA} && cd ..
+        cat .helm/kustomization.yaml
+        cat <<EOF >>.helm/kustomization.yaml
+        namespace: cicd-production
+        EOF
+        ./kustomize build .helm
+        ./kustomize build .helm | kubectl apply -f -
+        kubectl get services -o wide
