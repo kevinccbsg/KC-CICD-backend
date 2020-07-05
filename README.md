@@ -8,6 +8,34 @@ Tenemos una api rest escrita en [Flask](https://flask.palletsprojects.com/en/1.1
 
 Para ejecutar la api rest necesitamos un MySQL como base de datos (require exportar las variables de entorno para la correcta configuración, vea *MYSQL_DATABASE_* variables in _app.py_).
 
+## Ejecutar en local
+
+Instalar dependencias.
+
+```
+pip install -r requirements.txt
+```
+
+Arrancar la base de datos.
+
+```
+docker-compose up -d
+```
+
+Es necesario crear una serie de tablas en la base de datos dentro del container:
+
+```
+CREATE TABLE orders (email VARCHAR(20), name VARCHAR(20));
+
+CREATE TABLE items (name VARCHAR(20), status VARCHAR(20));
+```
+
+Luego puedes arrancar con:
+
+```
+python3 app.py
+```
+
 ## Linters
 
 Podemos ejecutar dos linters, uno para el código python (flake8) y otro para el Dockerfile (hadolint):
