@@ -86,9 +86,9 @@ jobs:
         gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GKE_PROJECT
         cd .helm && ../kustomize edit set image $REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE:${GITHUB_SHA} && cd ..
         cat .helm/kustomization.yaml
-        cat <<EOF >$DEMO_HOME/.helm/kustomization.yaml
+        cat <<EOF >>.helm/kustomization.yaml
         replicas:
-        - name: $DEPLOYMENT_NAME
+        - name: myapp
           count: 2
         EOF
         ./kustomize build .helm
