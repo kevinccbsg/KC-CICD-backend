@@ -17,7 +17,8 @@ env:
   GKE_ZONE: europe-west1-c
   IMAGE: kc-ci-backend
   REGISTRY_HOSTNAME: eu.gcr.io
-  DEPLOYMENT_NAME: gke-test
+  DEPLOYMENT_NAME: kc-cicd-backend
+  GKE_CLUSTER: kc-cluster
 
 jobs:
   tests:
@@ -72,3 +73,19 @@ jobs:
       run: |
         docker push $REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE:$GITHUB_SHA
 
+    # Set up kustomize
+    - name: Set up Kustomize
+      run: |
+        curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+        chmod u+x ./kustomize
+        ./kustomize version
+
+    # Deploy the Docker image to the GKE cluster
+    - name: Deploy
+      run: |
+        gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $GKE_PROJECT
+        cd .helm && ../kustomize edit set image $REGISTRY_HOSTNAME/$GKE_PROJECT/$IMAGE:${GITHUB_SHA} && cd ..
+        cat .helm/kustomization.yaml
+        ./kustomize build .helm
+        ./kustomize build .helm | kubectl apply -f -
+        kubectl get services -o wide

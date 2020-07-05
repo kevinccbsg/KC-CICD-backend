@@ -1,0 +1,80 @@
+---
+apiVersion: "v1"
+kind: "ConfigMap"
+metadata:
+  name: "kc-cicd-backend-config-vqnh"
+  namespace: "cicd-development"
+  labels:
+    app: "kc-cicd-backend"
+data:
+  MYSQL_DATABASE_USER: "root"
+  MYSQL_DATABASE_DB: "data"
+  MYSQL_DATABASE_HOST: "db"
+  MYSQL_DATABASE_PORT: "3306"
+---
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: "kc-cicd-backend"
+  namespace: "cicd-development"
+  labels:
+    app: "kc-cicd-backend"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: "kc-cicd-backend"
+  template:
+    metadata:
+      labels:
+        app: "kc-cicd-backend"
+    spec:
+      containers:
+      - name: "kc-ci-backend-sha256-1"
+        image: "eu.gcr.io/bngo-app/kc-ci-backend"
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: backend-cicd-secret
+              key: MYSQL_DATABASE_PASSWORD
+        - name: "MYSQL_DATABASE_USER"
+          valueFrom:
+            configMapKeyRef:
+              key: "MYSQL_DATABASE_USER"
+              name: "kc-cicd-backend-config-vqnh"
+        - name: "MYSQL_DATABASE_DB"
+          valueFrom:
+            configMapKeyRef:
+              key: "MYSQL_DATABASE_DB"
+              name: "kc-cicd-backend-config-vqnh"
+        - name: "MYSQL_DATABASE_HOST"
+          valueFrom:
+            configMapKeyRef:
+              key: "MYSQL_DATABASE_HOST"
+              name: "kc-cicd-backend-config-vqnh"
+        - name: "MYSQL_DATABASE_PORT"
+          valueFrom:
+            configMapKeyRef:
+              key: "MYSQL_DATABASE_PORT"
+              name: "kc-cicd-backend-config-vqnh"
+---
+apiVersion: "autoscaling/v2beta1"
+kind: "HorizontalPodAutoscaler"
+metadata:
+  name: "kc-cicd-backend-hpa-kzkc"
+  namespace: "cicd-development"
+  labels:
+    app: "kc-cicd-backend"
+spec:
+  scaleTargetRef:
+    kind: "Deployment"
+    name: "kc-cicd-backend"
+    apiVersion: "apps/v1"
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: "Resource"
+    resource:
+      name: "cpu"
+      targetAverageUtilization: 80
