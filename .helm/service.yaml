@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  generateName: kc-cicd-backend-
+  labels:
+    app: kc-cicd-backend
+  selfLink: /api/v1/namespaces/cicd-development/services/kc-cicd-backend-2cdkd
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - nodePort: 30668
+    port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: kc-cicd-backend
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer: {}
